@@ -1,0 +1,36 @@
+# CI: ESLint + TypeScript 型チェック + ビルド確認
+# PR 時と main へのプッシュ時に実行される
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 依存関係をインストール
+        run: npm ci --legacy-peer-deps
+
+      - name: ESLint でコードスタイルをチェック
+        run: npm run lint
+
+      - name: TypeScript の型チェック
+        run: npx tsc --noEmit
+
+      - name: ビルドが成功するか確認
+        run: npm run build
