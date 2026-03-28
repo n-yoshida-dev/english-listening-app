@@ -1,0 +1,345 @@
+/* ===== CSS変数 ===== */
+:root {
+  --color-bg: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+  --color-primary: #1e40af;
+  --color-primary-hover: #1d3a9a;
+  --color-secondary: #374151;
+  --color-secondary-hover: #1f2937;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-active-bg: #eff6ff;
+  --color-active-border: #3b82f6;
+  --color-done: #9ca3af;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== ダークモード ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #111827;
+    --color-surface: #1f2937;
+    --color-border: #374151;
+    --color-text: #f9fafb;
+    --color-text-muted: #9ca3af;
+    --color-primary: #3b82f6;
+    --color-primary-hover: #2563eb;
+    --color-secondary: #6b7280;
+    --color-secondary-hover: #9ca3af;
+    --color-active-bg: #1e3a5f;
+    --color-active-border: #60a5fa;
+    --color-done: #4b5563;
+  }
+}
+
+/* ===== ベーススタイル ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+/* ===== アプリレイアウト ===== */
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+}
+
+.app-header {
+  padding: 24px 0 16px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 24px;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== テキスト入力 ===== */
+.text-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.text-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-input-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.word-count {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.text-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.text-input:focus {
+  border-color: var(--color-primary);
+}
+
+.text-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.text-input-note {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ===== プレイヤー ===== */
+.player {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+}
+
+.player-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rate-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rate-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.shortcut-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* ===== ボタン ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:not(:disabled):hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-secondary:not(:disabled):hover {
+  background: var(--color-secondary);
+  color: #fff;
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.btn-danger:not(:disabled):hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-rate {
+  padding: 4px 10px;
+  font-size: 12px;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: 4px;
+}
+
+.btn-rate.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-rate:not(.active):hover {
+  background: var(--color-secondary);
+  color: #fff;
+}
+
+/* ===== kbd ===== */
+kbd {
+  display: inline-flex;
+  padding: 1px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--color-bg);
+}
+
+/* ===== トランスクリプト ===== */
+.transcript-view {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.transcript-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.transcript-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transcript-sentence {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  line-height: 1.7;
+  border-left: 3px solid transparent;
+  transition: background-color 0.2s, border-color 0.2s;
+  color: var(--color-text);
+}
+
+/* 読み終わったセンテンス */
+.transcript-sentence.done {
+  color: var(--color-done);
+}
+
+/* 現在読んでいるセンテンス */
+.transcript-sentence.active {
+  background: var(--color-active-bg);
+  border-left-color: var(--color-active-border);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* ===== アラート ===== */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 20px;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .transcript-sentence {
+    font-size: 14px;
+  }
+}

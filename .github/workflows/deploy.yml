@@ -1,0 +1,53 @@
+# CD: main ブランチへのプッシュ後に GitHub Pages へ自動デプロイ
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+# GitHub Pages への書き込み権限を付与
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時デプロイを防ぐ（進行中のデプロイはキャンセルせず完了を待つ）
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 依存関係をインストール
+        run: npm ci --legacy-peer-deps
+
+      - name: アプリをビルド
+        run: npm run build
+
+      - name: GitHub Pages の設定
+        uses: actions/configure-pages@v5
+
+      - name: ビルド成果物をアップロード
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: GitHub Pages にデプロイ
+        id: deployment
+        uses: actions/deploy-pages@v4
