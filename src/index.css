@@ -327,6 +327,38 @@ kbd {
   background: var(--color-bg);
 }
 
+/* ===== ループインジケーター ===== */
+.loop-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.loop-indicator-text {
+  flex: 1;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.loop-indicator-clear {
+  background: transparent;
+  border: none;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.loop-indicator-clear:hover {
+  color: #1e40af;
+}
+
 /* ===== トランスクリプト ===== */
 .transcript-view {
   background: var(--color-surface);
@@ -336,13 +368,33 @@ kbd {
   box-shadow: var(--shadow);
 }
 
+.transcript-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
 .transcript-title {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* ループ操作ガイドテキスト */
+.loop-guide {
+  font-size: 12px;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.loop-guide--hint {
+  color: var(--color-text-muted);
+  font-weight: 400;
 }
 
 .transcript-list {
@@ -355,6 +407,9 @@ kbd {
 }
 
 .transcript-sentence {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 15px;
@@ -362,6 +417,30 @@ kbd {
   border-left: 3px solid transparent;
   transition: background-color 0.2s, border-color 0.2s;
   color: var(--color-text);
+  cursor: pointer;
+  /* スマホでのダブルタップによるズームを防ぐ */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.transcript-sentence:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* センテンス番号 */
+.sentence-number {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 18px;
+  text-align: right;
+  padding-top: 2px;
+}
+
+.sentence-text {
+  flex: 1;
 }
 
 /* 読み終わったセンテンス */
@@ -375,6 +454,24 @@ kbd {
   border-left-color: var(--color-active-border);
   color: var(--color-text);
   font-weight: 500;
+}
+
+/* ループ範囲内のセンテンス */
+.transcript-sentence.loop-range {
+  background: #eff6ff;
+  border-left-color: #3b82f6;
+}
+
+/* ループ範囲内かつ現在再生中 */
+.transcript-sentence.loop-range.active {
+  background: #dbeafe;
+  border-left-color: #1d4ed8;
+}
+
+/* 開始点が仮設定されたセンテンス（終了点待ち） */
+.transcript-sentence.loop-pending {
+  background: #f0fdf4;
+  border-left-color: #22c55e;
 }
 
 /* ===== アラート ===== */
@@ -397,11 +494,25 @@ kbd {
   }
 
   .btn {
+    /* スマホでタップしやすいサイズを確保 */
     padding: 10px 14px;
     font-size: 13px;
   }
 
   .transcript-sentence {
     font-size: 14px;
+    /* スマホでのタップ領域を十分に確保する */
+    padding: 10px 12px;
+  }
+
+  .voice-select {
+    /* スマホでは幅いっぱいに広げる */
+    min-width: unset;
+    width: 100%;
+  }
+
+  .loop-guide--hint {
+    /* ヒントテキストはスマホでは非表示（画面が狭いため） */
+    display: none;
   }
 }

@@ -1,21 +1,30 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { splitSentences } from '../utils/splitSentences'
+import { isLearningVoice } from '../utils/voiceUtils'
 
 export type PlayState = 'idle' | 'playing' | 'paused'
 
+// ループ再生の範囲（センテンスのインデックス、両端含む）
+export interface LoopRange {
+  start: number
+  end: number
+}
+
 interface UseSpeechOptions {
   rate: number
-  // 使用する音声の名前。未指定の場合はブラウザ推奨音声を自動選択する
+  // 使用する音声の名前。未指定の場合はリスト先頭を使用する
   voiceName?: string
+  // ループ再生する範囲。null の場合は全文を順に再生して終了する
+  loopRange?: LoopRange | null
 }
 
 interface UseSpeechResult {
   playState: PlayState
   currentSentenceIndex: number
   sentences: string[]
-  // 利用可能な英語音声の一覧（voiceschanged 後に確定）
+  // 学習に適した英語音声の一覧（voiceschanged 後に確定）
   availableVoices: SpeechSynthesisVoice[]
-  // 現在実際に使用している音声名（未選択時は空文字）
+  // 現在実際に使用している音声名
   currentVoiceName: string
   play: () => void
   pause: () => void
@@ -26,16 +35,16 @@ interface UseSpeechResult {
 }
 
 // センテンスとセンテンスの間に入れる無音時間（ms）
-// ピリオドで一息つく自然なリズムを再現する
 const SENTENCE_PAUSE_MS = 500
 
 /**
  * Web Speech API（SpeechSynthesis）を操作するカスタムフック
- * - 利用可能な英語音声を一覧として公開し、外部から選択できるようにする
+ * - 学習に適した英語音声のみを一覧として公開する
  * - センテンスごとに発話し、センテンス間に間隔を挟む
+ * - loopRange が指定された場合は指定区間をループ再生する
  */
 export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechResult {
-  const { rate, voiceName } = options
+  const { rate, voiceName, loopRange } = options
 
   const [playState, setPlayState] = useState<PlayState>('idle')
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1)
@@ -43,25 +52,25 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
   const [isSupported] = useState(() => 'speechSynthesis' in window)
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
 
-  // 現在の発話インデックスを ref でも保持（コールバック内で最新値を参照するため）
   const currentIndexRef = useRef(-1)
   const sentencesRef = useRef<string[]>([])
   const rateRef = useRef(rate)
   const voiceNameRef = useRef(voiceName)
+  const loopRangeRef = useRef(loopRange)
   const isPlayingRef = useRef(false)
 
-  // rate・voiceName の変化を ref に反映
   useEffect(() => { rateRef.current = rate }, [rate])
   useEffect(() => { voiceNameRef.current = voiceName }, [voiceName])
+  useEffect(() => { loopRangeRef.current = loopRange }, [loopRange])
 
   // ブラウザの音声リストを取得・監視する
-  // Chrome は非同期で読み込まれるため voiceschanged イベントを待つ必要がある
+  // Chrome は非同期で読み込まれるため voiceschanged イベントを待つ
   useEffect(() => {
     if (!isSupported) return
 
     const loadVoices = () => {
-      // 英語音声のみに絞り込んで一覧として提供する
-      const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'))
+      // 学習に不適切な音声（ノベルティ・非標準ロケール等）を除いた一覧を公開する
+      const voices = speechSynthesis.getVoices().filter(isLearningVoice)
       setAvailableVoices(voices)
     }
 
@@ -81,10 +90,10 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
   /**
    * 発話に使用する音声を決定する
-   * voiceName が指定されていればその名前で探し、なければ利用可能な最初の英語音声を返す
+   * voiceName が指定されていればその名前で探し、なければリスト先頭を使用する
    */
   const resolveVoice = useCallback((): SpeechSynthesisVoice | null => {
-    const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'))
+    const voices = speechSynthesis.getVoices().filter(isLearningVoice)
     if (voices.length === 0) return null
 
     const name = voiceNameRef.current
@@ -93,19 +102,29 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
       if (found) return found
     }
 
-    // voiceName 未指定またはマッチしない場合は最初の英語音声を使用
     return voices[0]
   }, [])
 
   /**
    * 指定インデックスのセンテンスを発話する
-   * 終了後に次のセンテンスへ連鎖する
+   * - loopRange が設定されている場合は範囲末尾で先頭へ戻る
+   * - loopRange がない場合は全文を順に再生して終了する
    */
   const speakAt = useCallback(
     (index: number) => {
       if (!isPlayingRef.current) return
-      if (index >= sentencesRef.current.length) {
-        // 全センテンス読了
+
+      const totalSentences = sentencesRef.current.length
+      const range = loopRangeRef.current
+
+      // ループ範囲の末尾を超えたら先頭に戻る
+      if (range && index > range.end) {
+        setTimeout(() => speakAt(range.start), SENTENCE_PAUSE_MS)
+        return
+      }
+
+      // 全文再生完了（ループなし）
+      if (!range && index >= totalSentences) {
         setPlayState('idle')
         setCurrentSentenceIndex(-1)
         currentIndexRef.current = -1
@@ -127,13 +146,11 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
       utterance.onend = () => {
         if (isPlayingRef.current) {
-          // センテンス間に間隔を挟んで自然なリズムにする
           setTimeout(() => speakAt(index + 1), SENTENCE_PAUSE_MS)
         }
       }
 
       utterance.onerror = (e) => {
-        // 中断による interrupted エラーは無視
         if (e.error === 'interrupted') return
         console.error('SpeechSynthesis error:', e.error)
         setPlayState('idle')
@@ -150,7 +167,9 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
     speechSynthesis.cancel()
     isPlayingRef.current = true
     setPlayState('playing')
-    speakAt(0)
+    // ループ範囲が設定されている場合はその先頭から再生する
+    const startIndex = loopRangeRef.current?.start ?? 0
+    speakAt(startIndex)
   }, [isSupported, speakAt])
 
   const handlePause = useCallback(() => {
@@ -175,15 +194,14 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
   const handleRestart = useCallback(() => {
     handleStop()
-    // cancel() は非同期なので少し待ってから再開
     setTimeout(() => {
       isPlayingRef.current = true
       setPlayState('playing')
-      speakAt(0)
+      const startIndex = loopRangeRef.current?.start ?? 0
+      speakAt(startIndex)
     }, 100)
   }, [handleStop, speakAt])
 
-  // アンマウント時にクリーンアップ
   useEffect(() => {
     return () => {
       speechSynthesis.cancel()
@@ -191,7 +209,6 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
     }
   }, [])
 
-  // 現在実際に使用している音声名を導出する
   const currentVoiceName = (() => {
     if (voiceName) {
       const found = availableVoices.find((v) => v.name === voiceName)
