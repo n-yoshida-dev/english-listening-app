@@ -59,12 +59,12 @@ export function TranscriptView({
     <div className="transcript-view">
       <div className="transcript-header">
         <h2 className="transcript-title">Transcript</h2>
-        {/* ループ範囲の操作ガイドをタイトル横に表示 */}
-        {pendingLoopStart !== null && loopRange === null && (
-          <span className="loop-guide">タップして終了点を選択</span>
-        )}
+        {/* 状態に応じたループ操作ガイド */}
         {loopRange === null && pendingLoopStart === null && (
           <span className="loop-guide loop-guide--hint">センテンスをタップしてループ範囲を設定</span>
+        )}
+        {pendingLoopStart !== null && loopRange === null && (
+          <span className="loop-guide">同じ文をもう一度タップ → 1文ループ / 別の文をタップ → 範囲ループ</span>
         )}
       </div>
 

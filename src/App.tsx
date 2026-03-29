@@ -59,7 +59,7 @@ function App() {
   /**
    * センテンスタップ時のループ範囲選択ロジック
    * - 未選択 → 1回目タップ：開始点を仮設定（pending）
-   * - pending 状態 → 同じセンテンスをタップ：キャンセル
+   * - pending 状態 → 同じセンテンスをタップ：そのセンテンス1つをループ確定
    * - pending 状態 → 別のセンテンスをタップ：範囲を確定（min/max で順序を正規化）
    * - 範囲確定後のタップ：クリアして新たに開始点を仮設定
    */
@@ -79,7 +79,8 @@ function App() {
       }
 
       if (pendingLoopStart === index) {
-        // 同じセンテンスを再タップ → キャンセル
+        // 同じセンテンスを再タップ → そのセンテンス1つをループ確定
+        setLoopRange({ start: index, end: index })
         setPendingLoopStart(null)
         return
       }

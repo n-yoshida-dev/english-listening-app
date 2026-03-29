@@ -17,7 +17,7 @@ const ALLOWED_LANGS = new Set(['en-US', 'en-GB', 'en-AU', 'en-IE'])
 // 学習に不向きなノベルティ・アクセシビリティ用途の音声名（完全一致）
 // iOS/macOS でシステムに含まれる特殊音声
 const NOVELTY_VOICE_NAMES = new Set([
-  'Bahh', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Bad News', 'Hysterical',
+  'Bahh', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Bad News', 'Good News', 'Hysterical',
   'Junior', 'Kathy', 'Organ', 'Pipe Organ', 'Princess', 'Ralph', 'Trinoids',
   'Whisper', 'Wobble', 'Zarvox', 'Fred', 'Albert', 'Jester',
 ])
