@@ -5,12 +5,18 @@ export type PlayState = 'idle' | 'playing' | 'paused'
 
 interface UseSpeechOptions {
   rate: number
+  // 使用する音声の名前。未指定の場合はブラウザ推奨音声を自動選択する
+  voiceName?: string
 }
 
 interface UseSpeechResult {
   playState: PlayState
   currentSentenceIndex: number
   sentences: string[]
+  // 利用可能な英語音声の一覧（voiceschanged 後に確定）
+  availableVoices: SpeechSynthesisVoice[]
+  // 現在実際に使用している音声名（未選択時は空文字）
+  currentVoiceName: string
   play: () => void
   pause: () => void
   resume: () => void
@@ -25,28 +31,44 @@ const SENTENCE_PAUSE_MS = 500
 
 /**
  * Web Speech API（SpeechSynthesis）を操作するカスタムフック
- * - 英語音声を自動選択する（Google Neural ボイス優先）
- * - センテンスごとに発話し、現在のインデックスを追跡する
- * - センテンス間に間隔を挟んで自然なリズムを実現する
+ * - 利用可能な英語音声を一覧として公開し、外部から選択できるようにする
+ * - センテンスごとに発話し、センテンス間に間隔を挟む
  */
 export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechResult {
-  const { rate } = options
+  const { rate, voiceName } = options
 
   const [playState, setPlayState] = useState<PlayState>('idle')
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1)
   const [sentences, setSentences] = useState<string[]>([])
   const [isSupported] = useState(() => 'speechSynthesis' in window)
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
 
   // 現在の発話インデックスを ref でも保持（コールバック内で最新値を参照するため）
   const currentIndexRef = useRef(-1)
   const sentencesRef = useRef<string[]>([])
   const rateRef = useRef(rate)
+  const voiceNameRef = useRef(voiceName)
   const isPlayingRef = useRef(false)
 
-  // rate の変化を ref に反映
+  // rate・voiceName の変化を ref に反映
+  useEffect(() => { rateRef.current = rate }, [rate])
+  useEffect(() => { voiceNameRef.current = voiceName }, [voiceName])
+
+  // ブラウザの音声リストを取得・監視する
+  // Chrome は非同期で読み込まれるため voiceschanged イベントを待つ必要がある
   useEffect(() => {
-    rateRef.current = rate
-  }, [rate])
+    if (!isSupported) return
+
+    const loadVoices = () => {
+      // 英語音声のみに絞り込んで一覧として提供する
+      const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'))
+      setAvailableVoices(voices)
+    }
+
+    loadVoices()
+    speechSynthesis.addEventListener('voiceschanged', loadVoices)
+    return () => speechSynthesis.removeEventListener('voiceschanged', loadVoices)
+  }, [isSupported])
 
   // テキストが変わったらセンテンスを再生成し、再生を停止する
   useEffect(() => {
@@ -58,35 +80,20 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
   }, [text])
 
   /**
-   * 英語音声を優先して選択する
-   * Chrome の Google Neural ボイス（最も自然）を最優先し、
-   * 次いで en-US → en-GB → en-* → フォールバックの順で選ぶ
+   * 発話に使用する音声を決定する
+   * voiceName が指定されていればその名前で探し、なければ利用可能な最初の英語音声を返す
    */
-  const selectEnglishVoice = useCallback((): SpeechSynthesisVoice | null => {
-    const voices = speechSynthesis.getVoices()
+  const resolveVoice = useCallback((): SpeechSynthesisVoice | null => {
+    const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'))
     if (voices.length === 0) return null
 
-    // Chrome 搭載の Neural TTS ボイスを優先（最も自然な発音・抑揚）
-    const googleUS = voices.find((v) => v.name === 'Google US English')
-    if (googleUS) return googleUS
+    const name = voiceNameRef.current
+    if (name) {
+      const found = voices.find((v) => v.name === name)
+      if (found) return found
+    }
 
-    const googleUKFemale = voices.find((v) => v.name === 'Google UK English Female')
-    if (googleUKFemale) return googleUKFemale
-
-    // その他の Google 英語ボイス
-    const googleEn = voices.find((v) => v.name.startsWith('Google') && v.lang.startsWith('en'))
-    if (googleEn) return googleEn
-
-    // フォールバック：OS 付属の英語ボイス
-    const enUS = voices.find((v) => v.lang === 'en-US')
-    if (enUS) return enUS
-
-    const enGB = voices.find((v) => v.lang === 'en-GB')
-    if (enGB) return enGB
-
-    const en = voices.find((v) => v.lang.startsWith('en'))
-    if (en) return en
-
+    // voiceName 未指定またはマッチしない場合は最初の英語音声を使用
     return voices[0]
   }, [])
 
@@ -110,7 +117,7 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
       utterance.rate = rateRef.current
       utterance.lang = 'en-US'
 
-      const voice = selectEnglishVoice()
+      const voice = resolveVoice()
       if (voice) utterance.voice = voice
 
       utterance.onstart = () => {
@@ -135,7 +142,7 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
       speechSynthesis.speak(utterance)
     },
-    [selectEnglishVoice]
+    [resolveVoice]
   )
 
   const handlePlay = useCallback(() => {
@@ -184,10 +191,21 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
     }
   }, [])
 
+  // 現在実際に使用している音声名を導出する
+  const currentVoiceName = (() => {
+    if (voiceName) {
+      const found = availableVoices.find((v) => v.name === voiceName)
+      return found ? found.name : ''
+    }
+    return availableVoices[0]?.name ?? ''
+  })()
+
   return {
     playState,
     currentSentenceIndex,
     sentences,
+    availableVoices,
+    currentVoiceName,
     play: handlePlay,
     pause: handlePause,
     resume: handleResume,
