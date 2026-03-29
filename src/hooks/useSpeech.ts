@@ -19,10 +19,15 @@ interface UseSpeechResult {
   isSupported: boolean
 }
 
+// センテンスとセンテンスの間に入れる無音時間（ms）
+// ピリオドで一息つく自然なリズムを再現する
+const SENTENCE_PAUSE_MS = 500
+
 /**
  * Web Speech API（SpeechSynthesis）を操作するカスタムフック
- * - 英語音声を自動選択する
+ * - 英語音声を自動選択する（Google Neural ボイス優先）
  * - センテンスごとに発話し、現在のインデックスを追跡する
+ * - センテンス間に間隔を挟んで自然なリズムを実現する
  */
 export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechResult {
   const { rate } = options
@@ -54,12 +59,25 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
   /**
    * 英語音声を優先して選択する
-   * en-US → en-GB → en-* → フォールバック
+   * Chrome の Google Neural ボイス（最も自然）を最優先し、
+   * 次いで en-US → en-GB → en-* → フォールバックの順で選ぶ
    */
   const selectEnglishVoice = useCallback((): SpeechSynthesisVoice | null => {
     const voices = speechSynthesis.getVoices()
     if (voices.length === 0) return null
 
+    // Chrome 搭載の Neural TTS ボイスを優先（最も自然な発音・抑揚）
+    const googleUS = voices.find((v) => v.name === 'Google US English')
+    if (googleUS) return googleUS
+
+    const googleUKFemale = voices.find((v) => v.name === 'Google UK English Female')
+    if (googleUKFemale) return googleUKFemale
+
+    // その他の Google 英語ボイス
+    const googleEn = voices.find((v) => v.name.startsWith('Google') && v.lang.startsWith('en'))
+    if (googleEn) return googleEn
+
+    // フォールバック：OS 付属の英語ボイス
     const enUS = voices.find((v) => v.lang === 'en-US')
     if (enUS) return enUS
 
@@ -102,7 +120,8 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
       utterance.onend = () => {
         if (isPlayingRef.current) {
-          speakAt(index + 1)
+          // センテンス間に間隔を挟んで自然なリズムにする
+          setTimeout(() => speakAt(index + 1), SENTENCE_PAUSE_MS)
         }
       }
 
