@@ -30,7 +30,6 @@ export function splitSentences(text: string): string[] {
     .replace(ACRONYM_PATTERN, (match) => match.replace(/\./g, '<DOT>'))
 
   // 数字のピリオド（小数点）を保護
-  processed = processed.replace(/(\d)<DOT>(\d)/g, '$1<DOT>$2')
   processed = processed.replace(/(\d)\.(\d)/g, '$1<DECIMAL>$2')
 
   // センテンス区切りで分割（.!? の後に空白または末尾）

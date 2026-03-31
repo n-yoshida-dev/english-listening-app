@@ -14,6 +14,20 @@
   --color-active-bg: #eff6ff;
   --color-active-border: #3b82f6;
   --color-done: #9ca3af;
+  /* ループ範囲ハイライト */
+  --color-loop-bg: #eff6ff;
+  --color-loop-border: #3b82f6;
+  --color-loop-text: #1d4ed8;
+  --color-loop-active-bg: #dbeafe;
+  --color-loop-active-border: #1d4ed8;
+  --color-loop-pending-bg: #f0fdf4;
+  --color-loop-pending-border: #22c55e;
+  /* アラート */
+  --color-error-bg: #fee2e2;
+  --color-error-text: #991b1b;
+  --color-error-border: #fca5a5;
+  /* ホバー */
+  --color-hover-overlay: rgba(0, 0, 0, 0.04);
   --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, Consolas, monospace;
   --radius: 8px;
@@ -35,6 +49,20 @@
     --color-active-bg: #1e3a5f;
     --color-active-border: #60a5fa;
     --color-done: #4b5563;
+    /* ループ範囲ハイライト（ダーク） */
+    --color-loop-bg: #1e3a5f;
+    --color-loop-border: #3b82f6;
+    --color-loop-text: #93c5fd;
+    --color-loop-active-bg: #1e3271;
+    --color-loop-active-border: #60a5fa;
+    --color-loop-pending-bg: #14532d;
+    --color-loop-pending-border: #4ade80;
+    /* アラート（ダーク） */
+    --color-error-bg: #7f1d1d;
+    --color-error-text: #fca5a5;
+    --color-error-border: #ef4444;
+    /* ホバー（ダーク） */
+    --color-hover-overlay: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -176,6 +204,10 @@ body {
   flex-direction: column;
   gap: 12px;
   box-shadow: var(--shadow);
+  /* スクロール中でも常に画面上部に表示する */
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .player-controls {
@@ -333,22 +365,22 @@ kbd {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--color-loop-bg);
+  border: 1px solid var(--color-loop-border);
   border-radius: var(--radius);
   font-size: 13px;
 }
 
 .loop-indicator-text {
   flex: 1;
-  color: #1d4ed8;
+  color: var(--color-loop-text);
   font-weight: 600;
 }
 
 .loop-indicator-clear {
   background: transparent;
   border: none;
-  color: #1d4ed8;
+  color: var(--color-loop-text);
   cursor: pointer;
   font-size: 14px;
   padding: 0 4px;
@@ -356,7 +388,7 @@ kbd {
 }
 
 .loop-indicator-clear:hover {
-  color: #1e40af;
+  color: var(--color-loop-active-border);
 }
 
 /* ===== トランスクリプト ===== */
@@ -388,7 +420,7 @@ kbd {
 /* ループ操作ガイドテキスト */
 .loop-guide {
   font-size: 12px;
-  color: #1d4ed8;
+  color: var(--color-loop-text);
   font-weight: 500;
 }
 
@@ -425,7 +457,7 @@ kbd {
 }
 
 .transcript-sentence:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-hover-overlay);
 }
 
 /* センテンス番号 */
@@ -458,20 +490,20 @@ kbd {
 
 /* ループ範囲内のセンテンス */
 .transcript-sentence.loop-range {
-  background: #eff6ff;
-  border-left-color: #3b82f6;
+  background: var(--color-loop-bg);
+  border-left-color: var(--color-loop-border);
 }
 
 /* ループ範囲内かつ現在再生中 */
 .transcript-sentence.loop-range.active {
-  background: #dbeafe;
-  border-left-color: #1d4ed8;
+  background: var(--color-loop-active-bg);
+  border-left-color: var(--color-loop-active-border);
 }
 
 /* 開始点が仮設定されたセンテンス（終了点待ち） */
 .transcript-sentence.loop-pending {
-  background: #f0fdf4;
-  border-left-color: #22c55e;
+  background: var(--color-loop-pending-bg);
+  border-left-color: var(--color-loop-pending-border);
 }
 
 /* ===== アラート ===== */
@@ -482,9 +514,9 @@ kbd {
 }
 
 .alert-error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
 }
 
 /* ===== スマホ対応 ===== */
