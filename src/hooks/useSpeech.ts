@@ -58,6 +58,8 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
   const voiceNameRef = useRef(voiceName)
   const loopRangeRef = useRef(loopRange)
   const isPlayingRef = useRef(false)
+  // センテンス間ポーズのタイマーID（stop/unmount時にクリアする）
+  const pauseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { rateRef.current = rate }, [rate])
   useEffect(() => { voiceNameRef.current = voiceName }, [voiceName])
@@ -119,7 +121,7 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
       // ループ範囲の末尾を超えたら先頭に戻る
       if (range && index > range.end) {
-        setTimeout(() => speakAt(range.start), SENTENCE_PAUSE_MS)
+        pauseTimerRef.current = setTimeout(() => speakAt(range.start), SENTENCE_PAUSE_MS)
         return
       }
 
@@ -146,7 +148,7 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
       utterance.onend = () => {
         if (isPlayingRef.current) {
-          setTimeout(() => speakAt(index + 1), SENTENCE_PAUSE_MS)
+          pauseTimerRef.current = setTimeout(() => speakAt(index + 1), SENTENCE_PAUSE_MS)
         }
       }
 
@@ -185,6 +187,11 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
   }, [playState])
 
   const handleStop = useCallback(() => {
+    // ポーズ中のタイマーを先にクリアし、次センテンス再生を防ぐ
+    if (pauseTimerRef.current !== null) {
+      clearTimeout(pauseTimerRef.current)
+      pauseTimerRef.current = null
+    }
     speechSynthesis.cancel()
     isPlayingRef.current = false
     setPlayState('idle')
@@ -194,7 +201,7 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
   const handleRestart = useCallback(() => {
     handleStop()
-    setTimeout(() => {
+    pauseTimerRef.current = setTimeout(() => {
       isPlayingRef.current = true
       setPlayState('playing')
       const startIndex = loopRangeRef.current?.start ?? 0
@@ -204,6 +211,9 @@ export function useSpeech(text: string, options: UseSpeechOptions): UseSpeechRes
 
   useEffect(() => {
     return () => {
+      if (pauseTimerRef.current !== null) {
+        clearTimeout(pauseTimerRef.current)
+      }
       speechSynthesis.cancel()
       isPlayingRef.current = false
     }

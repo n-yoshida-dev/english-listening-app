@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react'
 import type { LoopRange } from '../hooks/useSpeech'
 
+// スクロールとタップを区別するための移動量しきい値（px）
+const SCROLL_THRESHOLD = 8
+
 interface TranscriptViewProps {
   sentences: string[]
   currentIndex: number
@@ -27,6 +30,8 @@ export function TranscriptView({
   onSentenceClick,
 }: TranscriptViewProps) {
   const activeRef = useRef<HTMLLIElement>(null)
+  // タッチ開始時の Y 座標を保持する（スクロールとタップの判別に使用）
+  const touchStartY = useRef<number>(0)
 
   // 現在のセンテンスが画面内に収まるようスクロール
   useEffect(() => {
@@ -76,7 +81,13 @@ export function TranscriptView({
             className={getClassName(i)}
             onClick={() => onSentenceClick(i)}
             // スマホでのタップ時に hover 状態が残らないよう touch イベントも処理する
+            onTouchStart={(e) => {
+              touchStartY.current = e.touches[0].clientY
+            }}
             onTouchEnd={(e) => {
+              // 指の移動量がしきい値を超えていればスクロール操作とみなしてスキップ
+              const moved = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
+              if (moved > SCROLL_THRESHOLD) return
               e.preventDefault()
               onSentenceClick(i)
             }}
