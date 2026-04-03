@@ -18,7 +18,9 @@ interface PlayerProps {
   disabled: boolean
 }
 
-const RATE_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+const RATE_MIN = 0.5
+const RATE_MAX = 2.0
+const RATE_STEP = 0.1
 
 /**
  * 再生コントロールパネル
@@ -121,20 +123,20 @@ export function Player({
         )}
       </div>
 
-      {/* 速度調整 */}
+      {/* 速度調整（スライダー） */}
       <div className="player-rate">
-        <label className="rate-label">Speed</label>
-        <div className="rate-buttons">
-          {RATE_OPTIONS.map((r) => (
-            <button
-              key={r}
-              className={`btn btn-rate ${rate === r ? 'active' : ''}`}
-              onClick={() => onRateChange(r)}
-            >
-              {r}x
-            </button>
-          ))}
-        </div>
+        <label className="rate-label" htmlFor="rate-slider">Speed</label>
+        <input
+          id="rate-slider"
+          className="rate-slider"
+          type="range"
+          min={RATE_MIN}
+          max={RATE_MAX}
+          step={RATE_STEP}
+          value={rate}
+          onChange={(e) => onRateChange(parseFloat(e.target.value))}
+        />
+        <span className="rate-value">{rate.toFixed(1)}x</span>
       </div>
 
       <p className="shortcut-hint">

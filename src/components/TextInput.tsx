@@ -1,8 +1,9 @@
-import { countWords } from '../utils/splitSentences'
+import { countWords, splitSentences } from '../utils/splitSentences'
 
 interface TextInputProps {
   value: string
   onChange: (value: string) => void
+  /** 再生中かどうか（注意表示に使用。テキストエリア自体は常に編集可能） */
   disabled: boolean
 }
 
@@ -12,6 +13,7 @@ interface TextInputProps {
  */
 export function TextInput({ value, onChange, disabled }: TextInputProps) {
   const wordCount = countWords(value)
+  const sentenceCount = splitSentences(value).length
 
   return (
     <div className="text-input-container">
@@ -20,7 +22,7 @@ export function TextInput({ value, onChange, disabled }: TextInputProps) {
           English Text
         </label>
         <div className="text-input-header-right">
-          <span className="word-count">{wordCount} words</span>
+          <span className="word-count">{sentenceCount} sentences / {wordCount} words</span>
           {/* テキストをワンタップで消去するボタン。再生中は非表示 */}
           {!disabled && value.length > 0 && (
             <button
@@ -40,11 +42,10 @@ export function TextInput({ value, onChange, disabled }: TextInputProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste English text here..."
-        disabled={disabled}
         rows={8}
       />
       {disabled && (
-        <p className="text-input-note">Stop playback to edit the text.</p>
+        <p className="text-input-note">テキストを編集すると再生が停止します</p>
       )}
     </div>
   )
