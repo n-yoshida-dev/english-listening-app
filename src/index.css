@@ -268,10 +268,47 @@ body {
   white-space: nowrap;
 }
 
-.rate-buttons {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+/* 速度スライダー */
+.rate-slider {
+  flex: 1;
+  min-width: 120px;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-border);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.rate-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.rate-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.rate-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .shortcut-hint {
@@ -330,23 +367,6 @@ body {
   color: #fff;
 }
 
-.btn-rate {
-  padding: 4px 10px;
-  font-size: 12px;
-  background: var(--color-border);
-  color: var(--color-text-muted);
-  border-radius: 4px;
-}
-
-.btn-rate.active {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.btn-rate:not(.active):hover {
-  background: var(--color-secondary);
-  color: #fff;
-}
 
 /* ===== kbd ===== */
 kbd {
@@ -504,6 +524,56 @@ kbd {
 .transcript-sentence.loop-pending {
   background: var(--color-loop-pending-bg);
   border-left-color: var(--color-loop-pending-border);
+}
+
+/* ===== プログレス ===== */
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.progress-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-bar-track {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-current-text {
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  min-height: 42px;
 }
 
 /* ===== アラート ===== */
