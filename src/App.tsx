@@ -21,7 +21,6 @@ My daughters will go to different daycare centers, so drop-off and pick-up will 
 
 In May, we will go back to work. I feel a little worried because our life will change again. But I hope our daily routine will become smoother little by little.
 
-
 Topic 2: Night Crying, Growth, and Montessori Education
 
 After our younger daughter was born, our older daughter sometimes cried at night. It was a hard time for us. The baby sleeps with my wife in another room because we do not want the baby's crying to wake up our older daughter. But I think my older daughter felt a big change in our family.
