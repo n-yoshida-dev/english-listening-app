@@ -10,8 +10,8 @@ import { detectBrowser, getDefaultVoiceForBrowser } from './utils/voiceUtils'
 import './index.css'
 import rawSampleText from '../docs/englishText.md?raw'
 
-// mdファイルの # ヘッダ記号を除去してTTS用プレーンテキストに変換する
-const SAMPLE_TEXT = rawSampleText.replace(/^#+\s*/gm, '').trim()
+// markdown 形式のままサンプルテキストとして渡す（見出し検出は splitSentences 側で行う）
+const SAMPLE_TEXT = rawSampleText.trim()
 
 /**
  * アプリのルートコンポーネント
@@ -19,7 +19,8 @@ const SAMPLE_TEXT = rawSampleText.replace(/^#+\s*/gm, '').trim()
  * - テキスト・速度・音声名を localStorage に永続化する
  */
 function App() {
-  const [text, setText] = useLocalStorage<string>('el-app-text', SAMPLE_TEXT)
+  // v2: サンプルテキストを markdown 形式（# 見出し付き）に変更したためキーを更新
+  const [text, setText] = useLocalStorage<string>('el-app-text-v2', SAMPLE_TEXT)
   const [rate, setRate] = useLocalStorage<number>('el-app-rate', 1.0)
   const [voiceName, setVoiceName] = useLocalStorage<string>('el-app-voice', '')
 
