@@ -21,9 +21,9 @@ const ABBREV_PATTERN = new RegExp(
 const ACRONYM_PATTERN = /\b[A-Z](\.[A-Z])+\.?/g
 
 /**
- * テキストをセンテンスの配列に分割する
+ * 本文ブロック（見出し以外）をセンテンスに分割する
  */
-export function splitSentences(text: string): string[] {
+function splitBody(text: string): string[] {
   // 略語と頭字語をプレースホルダーに置換してピリオドを保護
   let processed = text
     .replace(ABBREV_PATTERN, (_, abbr) => `${abbr}<DOT>`)
@@ -33,7 +33,7 @@ export function splitSentences(text: string): string[] {
   processed = processed.replace(/(\d)\.(\d)/g, '$1<DECIMAL>$2')
 
   // センテンス区切りで分割（.!? の後に空白または末尾）
-  const sentences = processed
+  return processed
     .split(/(?<=[.!?])\s+(?=[A-Z"'])|(?<=[.!?])\s*$/)
     .map((s) =>
       s
@@ -42,8 +42,37 @@ export function splitSentences(text: string): string[] {
         .trim()
     )
     .filter((s) => s.length > 0)
+}
 
-  return sentences
+/**
+ * テキストをセンテンスの配列に分割する
+ * markdown の見出し行（# 〜）は独立したセンテンスとして扱う
+ */
+export function splitSentences(text: string): string[] {
+  const lines = text.split(/\r?\n/)
+  const result: string[] = []
+  let bodyBuf: string[] = []
+
+  // 蓄積した本文をセンテンス分割して結果へ追加する
+  const flushBody = () => {
+    const body = bodyBuf.join('\n').trim()
+    if (body) result.push(...splitBody(body))
+    bodyBuf = []
+  }
+
+  for (const line of lines) {
+    const heading = line.match(/^\s*#{1,6}\s+(.+?)\s*$/)
+    if (heading) {
+      // 見出しを独立センテンスとして区切る（前後の本文と連結させない）
+      flushBody()
+      result.push(heading[1].trim())
+    } else {
+      bodyBuf.push(line)
+    }
+  }
+  flushBody()
+
+  return result
 }
 
 /**
